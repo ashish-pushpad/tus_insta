@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  password         String
+  name             String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  instagramAccounts InstagramAccount[]
+  specialRules     SpecialRule[]
+  aiConfigurations AIConfiguration[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model InstagramAccount {
+  id                String           @id @default(uuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramUserId   String           @unique
+  username          String
+  name              String?
+  profilePictureUrl String?
+  accessToken       String           @db.Text
+  tokenExpiresAt    DateTime?
+  isConnected       Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  media             InstagramMedia[]
+  specialRules      SpecialRule[]
+  comments          Comment[]
+  conversations     Conversation[]
+  aiConfigurations  AIConfiguration[]
+
+  @@index([userId])
+  @@index([instagramUserId])
+  @@map("instagram_accounts")
+}
+
+model InstagramMedia {
+  id                    String           @id @default(uuid())
+  instagramAccountId    String
+  instagramAccount      InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  mediaId               String           @unique
+  caption               String?          @db.Text
+  mediaType             String           // IMAGE, VIDEO, CAROUSEL_ALBUM, REEL
+  mediaUrl              String?          @db.Text
+  permalink             String?          @db.Text
+  timestamp             DateTime?
+  aiCommentReplyEnabled Boolean          @default(true)
+  aiDmReplyEnabled      Boolean          @default(true)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  specialRules          SpecialRule[]
+  comments              Comment[]
+
+  @@index([instagramAccountId])
+  @@index([mediaId])
+  @@map("instagram_media")
+}
+
+model SpecialRule {
+  id                 String           @id @default(uuid())
+  userId             String
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramAccountId String
+  instagramAccount   InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  mediaId            String?
+  media              InstagramMedia?  @relation(fields: [mediaId], references: [mediaId], onDelete: SetNull)
+  name               String
+  triggerType        String           // EXACT, SEMANTIC
+  keywords           Json             // String array e.g. ["price", "cost"]
+  actionType         String           // COMMENT_REPLY, DM, BOTH
+  commentReply       String?          @db.Text
+  dmMessage          String?          @db.Text
+  link               String?
+  priority           Int              @default(1)
+  isEnabled          Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([instagramAccountId, isEnabled])
+  @@index([userId])
+  @@map("special_rules")
+}
+
+model Comment {
+  id                 String           @id @default(uuid())
+  instagramAccountId String
+  instagramAccount   InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  mediaId            String
+  media              InstagramMedia?  @relation(fields: [mediaId], references: [mediaId], onDelete: SetNull)
+  commentId          String           @unique
+  fromUserId         String?
+  fromUsername       String?
+  commentText        String           @db.Text
+  generatedReply     String?          @db.Text
+  responseType       String           // RULE, AI, NONE
+  status             String           // PENDING, SENT, FAILED, SKIPPED
+  ruleId             String?
+  error              String?          @db.Text
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([instagramAccountId, createdAt(sort: Desc)])
+  @@index([commentId])
+  @@index([status])
+  @@map("comments")
+}
+
+model Conversation {
+  id                  String           @id @default(uuid())
+  instagramAccountId  String
+  instagramAccount    InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  participantId       String
+  participantUsername String?
+  status              String           @default("ACTIVE") // ACTIVE, ARCHIVED, HANDOFF
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  messages            Message[]
+
+  @@unique([instagramAccountId, participantId])
+  @@index([instagramAccountId])
+  @@map("conversations")
+}
+
+model Message {
+  id                String       @id @default(uuid())
+  conversationId    String
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  externalMessageId String?      @unique
+  senderType        String       // USER, AI, RULE
+  content           String       @db.Text
+  createdAt         DateTime     @default(now())
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@map("messages")
+}
+
+model AIConfiguration {
+  id                   String            @id @default(uuid())
+  userId               String
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramAccountId   String?
+  instagramAccount     InstagramAccount? @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  enabled              Boolean           @default(true)
+  replyStyle           String            @default("friendly")
+  businessDescription  String?           @db.Text
+  businessInstructions String?           @db.Text
+  tone                 String            @default("Friendly and helpful social media assistant")
+  maxResponseLength    Int               @default(150)
+  customInstructions   String?           @db.Text
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@index([userId])
+  @@map("ai_configurations")
+}
+
+model WebhookEvent {
+  id              String    @id @default(uuid())
+  externalEventId String    @unique
+  eventType       String    // comment, message, unknown
+  payload         Json
+  processed       Boolean   @default(false)
+  processedAt     DateTime?
+  error           String?   @db.Text
+  createdAt       DateTime  @default(now())
+
+  @@index([externalEventId])
+  @@index([processed, createdAt(sort: Desc)])
+  @@map("webhook_events")
+}
