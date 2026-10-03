@@ -32,6 +32,9 @@ prisma/migrations/dev.db*
 *.db
 *.sqlite
 
+# Generated Prisma client (built artifact)
+src/generated/
+
 # IDE & OS files
 .DS_Store
 Thumbs.db
