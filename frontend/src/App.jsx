@@ -14,6 +14,7 @@ const queryClient = new QueryClient({
 });
 
 export function App() {
+  console.log("env", import.meta.env.VITE_BACKEND_PROXY_URL)
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
