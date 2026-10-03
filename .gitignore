@@ -25,6 +25,9 @@ yarn-debug.log*
 coverage/
 */coverage/
 
+# Generated Prisma client
+backend/src/generated/
+
 # OS & Editor
 .DS_Store
 Thumbs.db

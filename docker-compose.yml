@@ -65,7 +65,7 @@ services:
     ports:
       - "5000:5000"
     command: >
-      sh -c "npx prisma db push && npm start"
+      sh -c "npx prisma migrate deploy && npm start"
 
   frontend:
     build:
