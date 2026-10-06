@@ -10,7 +10,8 @@ import {
   Activity,
   Sliders,
   Settings,
-  Sparkles
+  Sparkles,
+  Info,
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -24,6 +25,10 @@ export const Sidebar = () => {
     { name: 'Activity & Logs', path: '/activity', icon: Activity },
     { name: 'AI Settings', path: '/ai-settings', icon: Sliders },
     { name: 'Account Settings', path: '/settings', icon: Settings },
+  ];
+
+  const footerNavItems = [
+    { name: 'About', path: '/about', icon: Info },
   ];
 
   return (
@@ -64,6 +69,29 @@ export const Sidebar = () => {
             );
           })}
         </nav>
+      </div>
+
+      {/* About & secondary links */}
+      <div className="px-4 pb-2 border-t border-slate-800/60 pt-2">
+        {footerNavItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  isActive
+                    ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
+                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-900/60'
+                }`
+              }
+            >
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <span>{item.name}</span>
+            </NavLink>
+          );
+        })}
       </div>
 
       {/* System Status Footer */}

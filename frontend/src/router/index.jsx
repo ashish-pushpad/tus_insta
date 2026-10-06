@@ -14,6 +14,9 @@ import { ConversationsPage } from '../pages/Conversations.jsx';
 import { ActivityPage } from '../pages/Activity.jsx';
 import { AISettingsPage } from '../pages/AISettings.jsx';
 import { SettingsPage } from '../pages/Settings.jsx';
+import { AboutPage } from '../pages/About.jsx';
+import { PrivacyPolicyPage } from '../pages/PrivacyPolicy.jsx';
+import { DataDeletionPage } from '../pages/DataDeletion.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -38,6 +41,12 @@ export const AppRouter = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+
+      {/* Public route — no auth required */}
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/data-deletion" element={<DataDeletionPage />} />
 
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
